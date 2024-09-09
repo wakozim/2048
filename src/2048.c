@@ -1,7 +1,10 @@
 #include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "2048.h"
+#include <stdlib.h>
+
+#ifndef PLATFORM_WEB
+    #include <stdio.h>
+#endif // PLATFORM_WEB
 
 
 static int board[ROWS][COLUMNS]          = {0};
@@ -38,7 +41,18 @@ void clear_movement_board(void) {
     }
 }
 
-void add_random_cell() {
+void clear_board(void)
+{
+    for (int y = 0; y < BOARD_SIZE; ++y) {
+        for (int x = 0; x < BOARD_SIZE; ++x) {
+            board[y][x] = 0; 
+        }
+    }
+    clear_movement_board();
+}
+
+
+void add_random_cell(void) {
     bool indexes[BOARD_CAP] = {0};
     int i = -1;
     int tryes = 0;
@@ -59,7 +73,8 @@ void add_random_cell() {
     board[i/BOARD_SIZE][i%BOARD_SIZE] = 2;
 }
 
-void print_board()
+#ifndef PLATFORM_WEB
+void print_movement_board(void)
 {
     printf("-------------------\n");
     for (int row = 0; row < ROWS; ++row) {
@@ -71,7 +86,7 @@ void print_board()
     printf("-------------------\n");
 }
 
-void print_board2()
+void print_board(void)
 {
     printf("-----[ BOARD ]-------\n");
     for (int row = 0; row < ROWS; ++row) {
@@ -82,9 +97,10 @@ void print_board2()
     }
     printf("-------------------\n");
 }
+#endif // PLATFORM_WEB
 
 // Rotate the board 90 degrees clockwise
-void rotate_board()
+void rotate_board(void)
 {
     for (int i = 0; i < BOARD_SIZE/2; ++i) {
         for (int j = i; j < BOARD_SIZE - i - 1; ++j) {
@@ -104,7 +120,7 @@ void rotate_board()
 }
 
 
-bool swipe_board_right()
+bool swipe_board_right(void)
 {
     clear_movement_board();
     bool is_board_swiped = false;
@@ -146,7 +162,7 @@ bool swipe_board_right()
 }
 
 
-bool swipe_board_left() {
+bool swipe_board_left(void) {
     rotate_board(); 
     rotate_board(); 
     bool is_board_swiped = swipe_board_right();
@@ -156,7 +172,7 @@ bool swipe_board_left() {
 }
 
 
-bool swipe_board_down() {
+bool swipe_board_down(void) {
     rotate_board();
     rotate_board(); 
     rotate_board(); 
@@ -166,7 +182,7 @@ bool swipe_board_down() {
 }
 
 
-bool swipe_board_up() {
+bool swipe_board_up(void) {
     rotate_board(); 
     bool is_board_swiped = swipe_board_right();
     rotate_board(); 

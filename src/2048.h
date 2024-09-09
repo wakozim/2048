@@ -6,16 +6,16 @@
 #define ROWS (BOARD_SIZE)
 #define COLUMNS (BOARD_SIZE)
 
-int cell_at();
-void set_cell_at();
-int movement_at();
-void save_back_board();
-bool swipe_board_right();
-bool swipe_board_left();
-bool swipe_board_down();
-bool swipe_board_up();
-void print_board();
-void add_random_cell();
-
+int cell_at(int x, int y);
+void set_cell_at(int x, int y, int value);
+int movement_at(int x, int y);
+void save_back_board(void);
+void clear_board(void);
+bool swipe_board_right(void);
+bool swipe_board_left(void);
+bool swipe_board_down(void);
+bool swipe_board_up(void);
+void print_board(void);
+void add_random_cell(void);
 
 #endif // GAME_H_
