@@ -1,8 +1,12 @@
 #include <stdlib.h>
-#include "raylib.h"
+#include <stddef.h>
 #include <math.h>
-#include "2048.h"
+#include "raylib.h"
 #include "raymath.h"
+#include "2048.h"
+
+#define STB_SPRINTF_IMPLEMENTATION
+#include "stb_sprintf.h"
 
 #ifndef PLATFORM_WEB
     #include <stdio.h>
@@ -10,75 +14,29 @@
     #include <string.h>
 #endif
 
+#define CELL_VALUE_DEFAULT_FONT_SIZE 50
 #define CELL_SIZE 100
 #define CELL_GAP 10
 #define FIELD_WIDTH ((COLUMNS * CELL_SIZE) + ((COLUMNS - 1) * CELL_GAP))
 #define FIELD_HEIGHT ((ROWS * CELL_SIZE) + ((ROWS - 1) * CELL_GAP))
 #define FIELD_GAP 50
 
+#ifdef PLATFORM_WEB
+    #define ROUNDNESS 0.05f
+#else
+    #define ROUNDNESS 0.15f
+#endif
 
-int count_number_digits(long int num)
-{
-    int count = 0;
-    for (; num > 0; num /= 10)
-        ++count;
-    return count;
-}
+#define EMPTY_CELL_COLOR ColorFromHSV(0, 0.0f, 0.45f) 
+#define BACKGROUND_COLOR ColorFromHSV(0, 0.0f, 0.20f) 
+#define BOARD_COLOR      ColorFromHSV(0, 0.0f, 0.30f) 
+#define TEXT_COLOR       ColorFromHSV(0, 0.0f, 0.90f)
+
+void raylib_js_set_entry(void (*entry)(void));
 
 
-void draw_number(int number, int x, int y, int font_size, Color color)
-{
-    int spacing = font_size/10;
-    int digits = count_number_digits(number);
-    int temp = pow(10, digits - 1);
-    for (; number > 0; number %= temp, temp /= 10) {
-        //printf("%d - %d\n", number, temp);
-        switch (number / temp) {
-            case 0: {
-                DrawText("0", x, y, font_size, color);
-                x += MeasureText("0", font_size) + spacing;
-            } break;
-            case 1: {
-                DrawText("1", x, y, font_size, color);
-                x += MeasureText("1", font_size) + spacing;
-            } break;
-            case 2: {
-                DrawText("2", x, y, font_size, color);
-                x += MeasureText("2", font_size) + spacing;
-            } break;
-            case 3: {
-                DrawText("3", x, y, font_size, color);
-                x += MeasureText("3", font_size) + spacing;
-            } break;
-            case 4: {
-                DrawText("4", x, y, font_size, color);
-                x += MeasureText("4", font_size) + spacing;
-            } break;
-            case 5: {
-                DrawText("5", x, y, font_size, color);
-                x += MeasureText("5", font_size) + spacing;
-            } break;
-            case 6: {
-                DrawText("6", x, y, font_size, color);
-                x += MeasureText("6", font_size) + spacing;
-            } break;
-            case 7: {
-                DrawText("7", x, y, font_size, color);
-                x += MeasureText("7", font_size) + spacing;
-            } break;
-            case 8: {
-                DrawText("8", x, y, font_size, color);
-                x += MeasureText("8", font_size) + spacing;
-            } break;
-            case 9: {
-                DrawText("9", x, y, font_size, color);
-                x += MeasureText("9", font_size) + spacing;
-            } break;
-                    
-        }
-    }
-    //abort();
-}
+const char *font_path = "./assets/fonts/Roboto-Bold.ttf";
+Font font;
 
 
 typedef enum {
@@ -111,9 +69,30 @@ static int move_buffer_size = 0;
 static int move_buffer_start = 0;
 
 
+void draw_cell_value(int cell_value, int x, int y)
+{
+    static char text_buffer[4096] = {0};
+    stbsp_snprintf(text_buffer, sizeof(text_buffer), "%d", cell_value);
+    Vector2 text_size = MeasureTextEx(font, text_buffer, CELL_VALUE_DEFAULT_FONT_SIZE, 1);
+    Vector2 pos = {
+        .x = x + CELL_SIZE/2 - text_size.x/2,
+        .y = y + CELL_SIZE/2 - text_size.y/2,
+    };
+    DrawTextEx(font, text_buffer, pos, CELL_VALUE_DEFAULT_FONT_SIZE, 1, TEXT_COLOR);
+}
+
+
+Color get_cell_color(int cell_value)
+{
+    int hue = (int)(0 + log2(cell_value) * 10) % 360; 
+    Color color = ColorFromHSV(hue, 0.45f, 0.85f);
+    //Color color = cell_colors[(int)log2(cell_value)];
+    return color;
+}
+
+
 void draw_move_cells(void)
 {
-    Color cell_colors[] = {WHITE, BROWN, PURPLE, VIOLET, YELLOW, GOLD, ORANGE, PINK, RED, MAROON, GREEN, LIME, DARKGREEN, SKYBLUE};
     int sx = GetScreenWidth()/2 - FIELD_WIDTH/2;
     int sy = GetScreenHeight()/2 - FIELD_HEIGHT/2;   
     for (int cy = 0; cy < ROWS; cy++) {
@@ -142,15 +121,10 @@ void draw_move_cells(void)
                 y = Lerp(start_y, end_y, in_out_cubic(game_time/max_time));
             }
             
-            DrawRectangle(x, y, CELL_SIZE, CELL_SIZE, cell_colors[(int)log2(cell_value)]);
+            Rectangle cell_rect = {x, y, CELL_SIZE, CELL_SIZE};
+            DrawRectangleRounded(cell_rect, ROUNDNESS, 0, get_cell_color(cell_value));
             if (cell_value != 0) {
-                int font_size = 40;
-                const char *text = TextFormat("%d", cell_value); 
-                int text_width = MeasureText(text, font_size);
-                int tx = x + CELL_SIZE/2 - text_width/2;
-                int ty = y + CELL_SIZE/2 - font_size/2;
-                //DrawText(text, tx, ty, font_size, BLACK);
-                draw_number(cell_value, tx, ty, font_size, BLACK);
+                draw_cell_value(cell_value, x, y);
             }
         }
     }
@@ -158,45 +132,40 @@ void draw_move_cells(void)
 
 void draw_board(void)
 {
-    Color cell_colors[] = {WHITE, BROWN, PURPLE, VIOLET, YELLOW, GOLD, ORANGE, PINK, RED, MAROON, GREEN, LIME, DARKGREEN, SKYBLUE};
     int sx = GetScreenWidth()/2 - FIELD_WIDTH/2;
     int sy = GetScreenHeight()/2 - FIELD_HEIGHT/2;
+    
+    int margin = 20;
+    Rectangle board_rec = {sx - margin, sy - margin, FIELD_WIDTH + margin*2, FIELD_HEIGHT + margin*2};
+    //DrawRectangleRounded(board_rec, 0.05, 0, BLACK);
+    DrawRectangleRec(board_rec, BOARD_COLOR);
 
     for (int cy = 0; cy < ROWS; cy++) {
         for (int cx = 0; cx < COLUMNS; cx++) {
             int cell_value = cell_at(cx, cy);
-            int start_x = sx + (cx * CELL_SIZE) + (cx * CELL_GAP);
-            int start_y = sy + (cy * CELL_SIZE) + (cy * CELL_GAP);
-            int x = start_x;
-            int y = start_y;
-            if (cell_value != 0) {
-                int font_size = 40;
-                const char *text = TextFormat("%d", cell_value); 
-                int text_width = MeasureText(text, font_size);
-                int tx = x + CELL_SIZE/2 - text_width/2;
-                int ty = y + CELL_SIZE/2 - font_size/2;
+            int x = sx + (cx * CELL_SIZE) + (cx * CELL_GAP);
+            int y = sy + (cy * CELL_SIZE) + (cy * CELL_GAP);
+            Rectangle cell_rect = {x, y, CELL_SIZE, CELL_SIZE};
+            if (cell_value != 0) { 
                 if (game_state != GAME_PLAY) {
                     int x_offset = movement_at(cx, cy);
                     if (x_offset > 0) { 
-                        DrawRectangle(x, y, CELL_SIZE, CELL_SIZE, (cx + cy) % 2 ? GRAY : GRAY );
+                        DrawRectangleRounded(cell_rect, ROUNDNESS, 0, EMPTY_CELL_COLOR);
                         continue;
                     };
                 }
-
-                DrawRectangle(x, y, CELL_SIZE, CELL_SIZE, cell_colors[(int)log2(cell_value)]);
-                //DrawText(text, tx, ty, font_size, BLACK);
-                draw_number(cell_value, tx, ty, font_size, BLACK);
+                
+                DrawRectangleRounded(cell_rect, ROUNDNESS, 0, get_cell_color(cell_value));
+                draw_cell_value(cell_value, x, y);
 
             } else {
-                DrawRectangle(x, y, CELL_SIZE, CELL_SIZE, (cx + cy) % 2 ? GRAY : GRAY );
+                DrawRectangleRounded(cell_rect, ROUNDNESS, 0, EMPTY_CELL_COLOR);
             }
         }
     }
     if (game_state != GAME_PLAY) draw_move_cells();
 }
 
-
-void raylib_js_set_entry(void (*entry)(void));
 
 void queue_move(Move move)
 {
@@ -248,7 +217,7 @@ void capture_input(void)
 void game_frame(void)
 {
     BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(BACKGROUND_COLOR);
     
         draw_board();           
         capture_input(); 
@@ -284,41 +253,6 @@ void game_frame(void)
                 default: break;
             }
             }
-#if 0
-            if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) {
-                save_back_board();
-                if (swipe_board_right()) { 
-                    game_state = GAME_MOVE_CELLS_RIGHT;
-                }
-            }
-    
-            if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
-                save_back_board();
-                if (swipe_board_down()) {
-                    game_state = GAME_MOVE_CELLS_DOWN;
-                }
-            }
-    
-            if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) {
-                save_back_board();
-                if (swipe_board_left()) { 
-                    game_state = GAME_MOVE_CELLS_LEFT;
-                }
-            }
-    
-            if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
-                save_back_board();
-                if (swipe_board_up()) { 
-                    game_state = GAME_MOVE_CELLS_UP;
-                }
-            }
-            
-            if (IsKeyPressed(KEY_R)) {
-                clear_board();
-                add_random_cell();
-                save_back_board();
-            }
-#endif
         } else {
             game_time += GetFrameTime();
             if (game_time > max_time) {
@@ -328,7 +262,6 @@ void game_frame(void)
                 game_time = 0.0f;
             }
         }
-#define TEXT_SIZE 25
     EndDrawing();
 }
 
@@ -343,6 +276,7 @@ int main(void)
     InitWindow(FIELD_WIDTH + FIELD_GAP*2, FIELD_HEIGHT + FIELD_GAP*2, "2048");
     SetTargetFPS(60);    
     
+    font = LoadFontEx(font_path, CELL_VALUE_DEFAULT_FONT_SIZE, NULL, 0);
     
     add_random_cell();
     save_back_board();

@@ -318,7 +318,8 @@ class RaylibJs {
         }
     }
 
-    // RLAPI void DrawRectangle(int posX, int posY, int width, int height, Color color); // Draw a color-filled rectangle
+    // RLAPI void DrawRectangle(int posX, int posY, int width, int height, Color color);
+    // Draw a color-filled rectangle
     DrawRectangle(posX, posY, width, height, color_ptr) {
         const buffer = this.wasm.instance.exports.memory.buffer;
         const color = getColorFromMemory(buffer, color_ptr);
@@ -326,6 +327,17 @@ class RaylibJs {
         this.ctx.fillRect(posX, posY, width, height);
     }
     
+    //RLAPI void DrawRectangleRounded(Rectangle rec, float roundness, int segments, Color color);              
+    // Draw rectangle with rounded edges
+    DrawRectangleRounded(rec_ptr, roundness, segments, color_ptr) {
+        const buffer = this.wasm.instance.exports.memory.buffer;
+        const [posX, posY, width, height] = new Float32Array(buffer, rec_ptr, 4);
+        const color = getColorFromMemory(buffer, color_ptr);
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+        this.ctx.roundRect(posX, posY, width, height, [Math.floor(roundness*100)]);
+        this.ctx.fill();
+    }  
     
     //RLAPI void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color); // Draw a color-filled triangle (vertex in counter-clockwise order!)
     DrawTriangle(v1, v2, v3, color_ptr) {
