@@ -520,7 +520,7 @@ class RaylibJs {
         this.ctx.font = fontSize+"px myfont";
         const metrics = this.ctx.measureText(text)
         result[0] = metrics.width;
-        result[1] = fontSize;
+        result[1] = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
     }
     
     DrawTextEx(font, text_ptr, position_ptr, fontSize, spacing, tint_ptr) {
