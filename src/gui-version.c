@@ -120,7 +120,6 @@ Color get_cell_color(int cell_value)
 {
     int hue = (int)(0 + log2(cell_value) * 10) % 360; 
     Color color = ColorFromHSV(hue, 0.45f, 0.85f);
-    //Color color = cell_colors[(int)log2(cell_value)];
     return color;
 }
 
@@ -128,7 +127,6 @@ Color get_cell_color(int cell_value)
 void draw_move_cells(void)
 {
     int sx = GetScreenWidth()/2 - FIELD_WIDTH/2 + FIELD_MARGIN;
-    //int sy = GetScreenHeight()/2 - GAME_HEIGHT/2;   
     int sy = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT + FIELD_GAP + FIELD_MARGIN;   
 
     for (int cy = 0; cy < ROWS; cy++) {
@@ -169,11 +167,9 @@ void draw_move_cells(void)
 void draw_board(void)
 {
     int sx = GetScreenWidth()/2 - FIELD_WIDTH/2 + FIELD_MARGIN;
-    //int sy = GetScreenHeight()/2 - FIELD_HEIGHT/2;
     int sy = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT + FIELD_GAP + FIELD_MARGIN;   
     
     Rectangle board_rec = {sx - FIELD_MARGIN, sy - FIELD_MARGIN,  FIELD_WIDTH, FIELD_HEIGHT};
-    //DrawRectangleRounded(board_rec, 0.05, 0, BLACK);
     DrawRectangleRec(board_rec, BOARD_COLOR);
 
     for (int cy = 0; cy < ROWS; cy++) {
