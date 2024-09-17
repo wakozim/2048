@@ -80,7 +80,8 @@ void add_random_cell(void) {
     } while (board[i/BOARD_SIZE][i%BOARD_SIZE] != 0);
 
     if (i < 0 || i >= BOARD_CAP) return;
-    board[i/BOARD_SIZE][i%BOARD_SIZE] = 2;
+    int value = rand() % 100 < 90 ? 2 : 4;
+    board[i/BOARD_SIZE][i%BOARD_SIZE] = value;
 }
 
 #ifndef PLATFORM_WEB
