@@ -361,6 +361,7 @@ int main(void)
 #ifndef PLATFORM_WEB
     srand(time(0));
     SetTraceLogLevel(LOG_WARNING);
+    SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI);
 #endif
 
     InitWindow(FIELD_WIDTH + FIELD_GAP*2, FIELD_HEIGHT + FIELD_GAP*2 + SCORE_HEIGHT, "2048");
