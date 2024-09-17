@@ -14,7 +14,6 @@
     #include <string.h>
 #endif
 
-#define CELL_VALUE_DEFAULT_FONT_SIZE 50
 #define CELL_SIZE 100
 #define CELL_GAP 10
 #define FIELD_MARGIN 20
@@ -31,8 +30,14 @@
 
 #ifdef PLATFORM_WEB
     #define ROUNDNESS 0.05f
+    #define CELL_VALUE_DEFAULT_FONT_SIZE 40
+    #define SCORE_LABEL_TEXT_SIZE 17
+    #define SCORE_VALUE_TEXT_SIZE 45
 #else
     #define ROUNDNESS 0.15f
+    #define CELL_VALUE_DEFAULT_FONT_SIZE 50
+    #define SCORE_LABEL_TEXT_SIZE 20
+    #define SCORE_VALUE_TEXT_SIZE 50
 #endif
 
 #define EMPTY_CELL_COLOR ColorFromHSV(0, 0.00f, 0.45f) 
@@ -45,8 +50,8 @@ void raylib_js_set_entry(void (*entry)(void));
 
 
 const char *font_path = "./assets/fonts/Roboto-Bold.ttf";
-Font font;
-Font font2;
+Font default_font;
+Font score_label_font;
 
 
 typedef enum {
@@ -102,12 +107,12 @@ void draw_cell_value(int cell_value, int x, int y)
 {
     static char text_buffer[4096] = {0};
     stbsp_snprintf(text_buffer, sizeof(text_buffer), "%d", cell_value);
-    Vector2 text_size = MeasureTextEx(font, text_buffer, CELL_VALUE_DEFAULT_FONT_SIZE, 1);
+    Vector2 text_size = MeasureTextEx(default_font, text_buffer, CELL_VALUE_DEFAULT_FONT_SIZE, 1);
     Vector2 pos = {
         .x = x + CELL_SIZE/2 - text_size.x/2,
         .y = y + CELL_SIZE/2 - text_size.y/2,
     };
-    DrawTextEx(font, text_buffer, pos, CELL_VALUE_DEFAULT_FONT_SIZE, 1, TEXT_COLOR);
+    DrawTextEx(default_font, text_buffer, pos, CELL_VALUE_DEFAULT_FONT_SIZE, 1, TEXT_COLOR);
 }
 
 
@@ -208,8 +213,8 @@ void draw_score(void)
     int score = get_score();
     stbsp_snprintf(text_buffer, sizeof(text_buffer), "%d", score);
     
-    Vector2 text_size = MeasureTextEx(font2, "Score", 20, 1);
-    Vector2 value_text_size = MeasureTextEx(font, text_buffer, 50, 1);
+    Vector2 text_size = MeasureTextEx(score_label_font, "Score", SCORE_LABEL_TEXT_SIZE, 1);
+    Vector2 value_text_size = MeasureTextEx(default_font, text_buffer, SCORE_VALUE_TEXT_SIZE, 1);
     int score_width = value_text_size.x + SCORE_PAD*2;
 
     Vector2 value_pos = {sx + score_width/2 - value_text_size.x/2, sy + 20};
@@ -217,8 +222,8 @@ void draw_score(void)
 
 
     DrawRectangle(sx, sy, score_width, SCORE_HEIGHT, BOARD_COLOR);
-    DrawTextEx(font2, "Score", pos, 20, 1, TEXT_COLOR);
-    DrawTextEx(font, text_buffer, value_pos, 50, 1, TEXT_COLOR);
+    DrawTextEx(score_label_font, "Score", pos, SCORE_LABEL_TEXT_SIZE, 1, TEXT_COLOR);
+    DrawTextEx(default_font, text_buffer, value_pos, SCORE_VALUE_TEXT_SIZE, 1, TEXT_COLOR);
 }
 
 
@@ -365,8 +370,8 @@ int main(void)
     InitWindow(FIELD_WIDTH + FIELD_GAP*2, FIELD_HEIGHT + FIELD_GAP*2 + SCORE_HEIGHT, "2048");
     SetTargetFPS(60);    
     
-    font = LoadFontEx(font_path, CELL_VALUE_DEFAULT_FONT_SIZE, NULL, 0);
-    font2 = LoadFontEx(font_path, 20, NULL, 0);
+    default_font = LoadFontEx(font_path, CELL_VALUE_DEFAULT_FONT_SIZE, NULL, 0);
+    score_label_font = LoadFontEx(font_path, SCORE_LABEL_TEXT_SIZE, NULL, 0);
     
     add_random_cell();
     save_back_board();
