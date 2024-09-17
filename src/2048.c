@@ -9,7 +9,9 @@
 
 static int board[ROWS][COLUMNS]          = {0};
 static int back_board[ROWS][COLUMNS]     = {0};
+static int prev_board[ROWS][COLUMNS]     = {0};
 static int movement_board[ROWS][COLUMNS] = {0};
+static int prev_score                    = 0;
 static int score                         = 0;
 
 int get_score(void)
@@ -34,6 +36,24 @@ int movement_at(int x, int y) {
     return movement_board[y][x];
 }
 
+void restore_prev_board(void)
+{
+    for (int y = 0; y < BOARD_SIZE; ++y) {
+        for (int x = 0; x < BOARD_SIZE; ++x) {
+            board[y][x] = prev_board[y][x];
+        }
+    }
+}
+
+void save_prev_board(void)
+{
+    for (int y = 0; y < BOARD_SIZE; ++y) {
+        for (int x = 0; x < BOARD_SIZE; ++x) {
+            prev_board[y][x] = board[y][x];
+        }
+    }
+}
+
 void save_back_board(void)
 {
     for (int y = 0; y < BOARD_SIZE; ++y) {
@@ -41,6 +61,13 @@ void save_back_board(void)
             back_board[y][x] = board[y][x];
         }
     }
+}
+
+void cancel_move(void)
+{
+    score = prev_score;
+    restore_prev_board();
+    save_back_board();
 }
 
 void clear_movement_board(void) {
@@ -133,6 +160,7 @@ void rotate_board(void)
 
 bool swipe_board_right(void)
 {
+    prev_score = score;
     clear_movement_board();
     bool is_board_swiped = false;
     for (int y = 0; y < ROWS; ++y) {

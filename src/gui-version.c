@@ -23,8 +23,9 @@
 #define SCORE_HEIGHT 70
 #define SCORE_PAD 50
 #define GAME_HEIGHT (SCORE_HEIGHT + FIELD_GAP + FIELD_HEIGHT)
-#define BUTTON_SIZE SCORE_HEIGHT
-#define ARROW_THICK 10
+#define BUTTON_SIZE 60
+#define BUTTON_GAP 25
+#define ARROW_THICK 5
 #define ARROW_PAD 10
 
 
@@ -40,11 +41,11 @@
     #define SCORE_VALUE_TEXT_SIZE 50
 #endif
 
-#define EMPTY_CELL_COLOR ColorFromHSV(0, 0.00f, 0.45f) 
-#define BACKGROUND_COLOR ColorFromHSV(0, 0.00f, 0.20f) 
-#define BOARD_COLOR      ColorFromHSV(0, 0.00f, 0.30f) 
+#define EMPTY_CELL_COLOR ColorFromHSV(0, 0.00f, 0.45f)
+#define BACKGROUND_COLOR ColorFromHSV(0, 0.00f, 0.20f)
+#define BOARD_COLOR      ColorFromHSV(0, 0.00f, 0.30f)
 #define TEXT_COLOR       ColorFromHSV(0, 0.00f, 0.90f)
-#define ARROW_COLOR      ColorFromHSV(0, 0.55f, 0.85f)
+#define ARROW_COLOR      ColorFromHSV(0, 0.00f, 0.90f)
 
 void raylib_js_set_entry(void (*entry)(void));
 
@@ -84,7 +85,7 @@ static int move_buffer_size = 0;
 static int move_buffer_start = 0;
 
 
-void _draw_arrow(int x, int y, float angle, float angle2, Color arrow_color) 
+void _draw_arrow(int x, int y, float angle, float angle2, Color arrow_color)
 {
     int arrow_radius = (BUTTON_SIZE - ARROW_PAD*2) / 2;
     int xx = x + cosf(angle) * (arrow_radius + 5);
@@ -118,7 +119,7 @@ void draw_cell_value(int cell_value, int x, int y)
 
 Color get_cell_color(int cell_value)
 {
-    int hue = (int)(0 + log2(cell_value) * 10) % 360; 
+    int hue = (int)(0 + log2(cell_value) * 10) % 360;
     Color color = ColorFromHSV(hue, 0.45f, 0.85f);
     return color;
 }
@@ -127,7 +128,7 @@ Color get_cell_color(int cell_value)
 void draw_move_cells(void)
 {
     int sx = GetScreenWidth()/2 - FIELD_WIDTH/2 + FIELD_MARGIN;
-    int sy = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT + FIELD_GAP + FIELD_MARGIN;   
+    int sy = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT + FIELD_GAP + FIELD_MARGIN;
 
     for (int cy = 0; cy < ROWS; cy++) {
         for (int cx = 0; cx < COLUMNS; cx++) {
@@ -143,10 +144,10 @@ void draw_move_cells(void)
 
             if (game_state == GAME_MOVE_CELLS_RIGHT) {
                 int end_x = sx + ((cx + offset) * CELL_SIZE) + ((cx+offset) * CELL_GAP);
-                x = Lerp(start_x, end_x, in_out_cubic(game_time/max_time));            
+                x = Lerp(start_x, end_x, in_out_cubic(game_time/max_time));
             } else if (game_state == GAME_MOVE_CELLS_LEFT) {
                 int end_x = sx + ((cx-offset) * CELL_SIZE) + ((cx-offset) * CELL_GAP);
-                x = Lerp(start_x, end_x, in_out_cubic(game_time/max_time)); 
+                x = Lerp(start_x, end_x, in_out_cubic(game_time/max_time));
             } else if (game_state == GAME_MOVE_CELLS_UP) {
                 int end_y = sy + ((cy-offset) * CELL_SIZE) + ((cy-offset) * CELL_GAP);
                 y = Lerp(start_y, end_y, in_out_cubic(game_time/max_time));
@@ -154,7 +155,7 @@ void draw_move_cells(void)
                 int end_y = sy + ((cy+offset) * CELL_SIZE) + ((cy+offset) * CELL_GAP);
                 y = Lerp(start_y, end_y, in_out_cubic(game_time/max_time));
             }
-            
+
             Rectangle cell_rect = {x, y, CELL_SIZE, CELL_SIZE};
             DrawRectangleRounded(cell_rect, ROUNDNESS, 0, get_cell_color(cell_value));
             if (cell_value != 0) {
@@ -167,8 +168,8 @@ void draw_move_cells(void)
 void draw_board(void)
 {
     int sx = GetScreenWidth()/2 - FIELD_WIDTH/2 + FIELD_MARGIN;
-    int sy = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT + FIELD_GAP + FIELD_MARGIN;   
-    
+    int sy = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT + FIELD_GAP + FIELD_MARGIN;
+
     Rectangle board_rec = {sx - FIELD_MARGIN, sy - FIELD_MARGIN,  FIELD_WIDTH, FIELD_HEIGHT};
     DrawRectangleRec(board_rec, BOARD_COLOR);
 
@@ -178,15 +179,15 @@ void draw_board(void)
             int x = sx + (cx * CELL_SIZE) + (cx * CELL_GAP);
             int y = sy + (cy * CELL_SIZE) + (cy * CELL_GAP);
             Rectangle cell_rect = {x, y, CELL_SIZE, CELL_SIZE};
-            if (cell_value != 0) { 
+            if (cell_value != 0) {
                 if (game_state != GAME_PLAY) {
                     int x_offset = movement_at(cx, cy);
-                    if (x_offset > 0) { 
+                    if (x_offset > 0) {
                         DrawRectangleRounded(cell_rect, ROUNDNESS, 0, EMPTY_CELL_COLOR);
                         continue;
                     };
                 }
-                
+
                 DrawRectangleRounded(cell_rect, ROUNDNESS, 0, get_cell_color(cell_value));
                 draw_cell_value(cell_value, x, y);
 
@@ -203,12 +204,12 @@ void draw_score(void)
 {
     static char text_buffer[4096] = {0};
     int sx = GetScreenWidth()/2 - FIELD_WIDTH/2;
-    int sy = GetScreenHeight()/2 - GAME_HEIGHT/2;   
+    int sy = GetScreenHeight()/2 - GAME_HEIGHT/2;
 
 
     int score = get_score();
     stbsp_snprintf(text_buffer, sizeof(text_buffer), "%d", score);
-    
+
     Vector2 text_size = MeasureTextEx(score_label_font, "Score", SCORE_LABEL_TEXT_SIZE, 1);
     Vector2 value_text_size = MeasureTextEx(default_font, text_buffer, SCORE_VALUE_TEXT_SIZE, 1);
     int score_width = value_text_size.x + SCORE_PAD*2;
@@ -235,8 +236,8 @@ void queue_move(Move move)
 bool dequeue_move(Move *move)
 {
     if (move_buffer_size == 0) return false;
-    
-    *move = move_buffer[move_buffer_start]; 
+
+    *move = move_buffer[move_buffer_start];
     move_buffer_size--;
     move_buffer_start = (move_buffer_start + 1) % 100;
     return true;
@@ -247,6 +248,7 @@ void restart_game(void)
     reset_score();
     clear_board();
     add_random_cell();
+    save_prev_board();
     save_back_board();
     game_state = GAME_PLAY;
 }
@@ -255,49 +257,77 @@ void restart_game(void)
 void capture_input(void)
 {
     if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) {
-        queue_move(MOVE_RIGHT); 
+        queue_move(MOVE_RIGHT);
     }
 
     if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
-        queue_move(MOVE_DOWN); 
+        queue_move(MOVE_DOWN);
     }
 
     if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) {
-        queue_move(MOVE_LEFT); 
+        queue_move(MOVE_LEFT);
     }
 
     if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
-        queue_move(MOVE_UP); 
+        queue_move(MOVE_UP);
     }
-        
+
     if (IsKeyPressed(KEY_R)) {
         restart_game();
-    } 
+    }
+
+    if (IsKeyPressed(KEY_P)) {
+        cancel_move();
+    }
+}
+
+void draw_cancel_move_button(void)
+{
+    int x = GetScreenWidth()/2 + FIELD_WIDTH/2 - BUTTON_SIZE*2 - BUTTON_GAP;
+    int y = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT/2 - BUTTON_SIZE/2;
+
+    int arrow_radius = (BUTTON_SIZE - ARROW_PAD*2) / 2;
+    Vector2 button_center = {.x = x + BUTTON_SIZE/2, .y = y + BUTTON_SIZE/2};
+    Rectangle button_rec = {x, y, BUTTON_SIZE, BUTTON_SIZE};
+    bool hoverover = CheckCollisionPointRec(GetMousePosition(), button_rec);
+    Color button_color = hoverover ? ARROW_COLOR : BOARD_COLOR;
+    DrawRectangleRec(button_rec, button_color);
+
+    Color arrow_color = hoverover ? BOARD_COLOR : ARROW_COLOR;
+    Vector2 center = {.x = x + BUTTON_SIZE/2,
+                      .y = y + BUTTON_SIZE/2 - 1};
+    DrawRing(center, arrow_radius-ARROW_THICK, arrow_radius, -150, 60, 20, arrow_color);
+
+    _draw_arrow(button_center.x, button_center.y, -145*PI/180, -175*PI/180, arrow_color);
+
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && hoverover) {
+        cancel_move();
+    }
 }
 
 void draw_restart_button(void)
 {
     int x = GetScreenWidth()/2 + FIELD_WIDTH/2 - BUTTON_SIZE;
-    int y = GetScreenHeight()/2 - GAME_HEIGHT/2;   
+    int y = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT/2 - BUTTON_SIZE/2;
 
     int arrow_radius = (BUTTON_SIZE - ARROW_PAD*2) / 2;
     Vector2 button_center = {.x = x + BUTTON_SIZE/2, .y = y + BUTTON_SIZE/2};
     Rectangle button_rec = {x, y, BUTTON_SIZE, BUTTON_SIZE};
-    bool hoverover = CheckCollisionPointRec(GetMousePosition(), button_rec); 
+    bool hoverover = CheckCollisionPointRec(GetMousePosition(), button_rec);
     Color button_color = hoverover ? ARROW_COLOR : BOARD_COLOR;
     DrawRectangleRec(button_rec, button_color);
 
     Color arrow_color = hoverover ? BOARD_COLOR : ARROW_COLOR;
-    Vector2 center = {.x = x + BUTTON_SIZE/2, 
+    Vector2 center = {.x = x + BUTTON_SIZE/2,
                       .y = y + BUTTON_SIZE/2 - 1};
     DrawRing(center, arrow_radius-ARROW_THICK, arrow_radius, -160, -10, 20, arrow_color);
     DrawRing(center, arrow_radius-ARROW_THICK, arrow_radius, 170, 20, 20, arrow_color);
-      
+
     _draw_arrow(button_center.x, button_center.y, -150*PI/180, -175*PI/180, arrow_color);
     _draw_arrow(button_center.x, button_center.y, 30*PI/180, 0*PI/180, arrow_color);
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && hoverover) {
-        restart_game(); 
+        restart_game();
     }
 }
 
@@ -306,11 +336,13 @@ void game_frame(void)
 {
     BeginDrawing();
         ClearBackground(BACKGROUND_COLOR);
-        
-        draw_board();           
-        draw_score(); 
+
+        draw_board();
+        draw_score();
         draw_restart_button();
-        capture_input(); 
+        draw_cancel_move_button();
+
+        capture_input();
 
         if (game_state == GAME_PLAY) {
             Move move;
@@ -318,27 +350,31 @@ void game_frame(void)
             switch (move) {
                 case MOVE_RIGHT: {
                     save_back_board();
-                    if (swipe_board_right()) { 
+                    save_prev_board();
+                    if (swipe_board_right()) {
                         game_state = GAME_MOVE_CELLS_RIGHT;
-                    }              
+                    }
                 } break;
                 case MOVE_DOWN: {
                     save_back_board();
+                    save_prev_board();
                     if (swipe_board_down()) {
                         game_state = GAME_MOVE_CELLS_DOWN;
-                    }            
+                    }
                 } break;
                 case MOVE_LEFT: {
                     save_back_board();
-                    if (swipe_board_left()) { 
+                    save_prev_board();
+                    if (swipe_board_left()) {
                         game_state = GAME_MOVE_CELLS_LEFT;
-                    }           
+                    }
                 } break;
                 case MOVE_UP: {
                     save_back_board();
-                    if (swipe_board_up()) { 
+                    save_prev_board();
+                    if (swipe_board_up()) {
                         game_state = GAME_MOVE_CELLS_UP;
-                    }        
+                    }
                 } break;
                 default: break;
             }
@@ -356,7 +392,7 @@ void game_frame(void)
 }
 
 
-int main(void) 
+int main(void)
 {
 #ifndef PLATFORM_WEB
     srand(time(0));
@@ -365,13 +401,14 @@ int main(void)
 #endif
 
     InitWindow(FIELD_WIDTH + FIELD_GAP*2, FIELD_HEIGHT + FIELD_GAP*2 + SCORE_HEIGHT, "2048");
-    SetTargetFPS(60);    
-    
+    SetTargetFPS(60);
+
     default_font = LoadFontEx(font_path, CELL_VALUE_DEFAULT_FONT_SIZE, NULL, 0);
     score_label_font = LoadFontEx(font_path, SCORE_LABEL_TEXT_SIZE, NULL, 0);
-    
+
     add_random_cell();
     save_back_board();
+    save_prev_board();
 
 #ifdef PLATFORM_WEB
     raylib_js_set_entry(game_frame);
