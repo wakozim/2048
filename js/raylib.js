@@ -532,7 +532,7 @@ class RaylibJs {
         this.ctx.font = fontSize+"px myfont";
         const metrics = this.ctx.measureText(text)
         result[0] = metrics.width;
-        result[1] = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+        result[1] = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent; 
     }
     
     DrawTextEx(font, text_ptr, position_ptr, fontSize, spacing, tint_ptr) {
@@ -540,9 +540,10 @@ class RaylibJs {
         const text = cstr_by_ptr(buffer, text_ptr);
         const [posX, posY] = new Float32Array(buffer, position_ptr, 2);
         const tint = getColorFromMemory(buffer, tint_ptr);
+        this.ctx.textBaseline = 'top';
         this.ctx.fillStyle = tint;
         this.ctx.font = fontSize+"px myfont";
-        this.ctx.fillText(text, posX, posY + fontSize);
+        this.ctx.fillText(text, posX, posY);
     }
     
     Vector2Distance(vector1_ptr, vector2_ptr) {
