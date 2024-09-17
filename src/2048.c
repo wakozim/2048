@@ -10,7 +10,17 @@
 static int board[ROWS][COLUMNS]          = {0};
 static int back_board[ROWS][COLUMNS]     = {0};
 static int movement_board[ROWS][COLUMNS] = {0};
+static int score                         = 0;
 
+int get_score(void)
+{
+    return score;
+}
+
+void reset_score(void)
+{
+    score = 0;
+}
 
 int cell_at(int x, int y) {
     return back_board[y][x];
@@ -150,6 +160,7 @@ bool swipe_board_right(void)
             is_board_swiped = true;
             if (use_value) {
                 board[y][x] += value;
+                score += value*2;
             } else {
                 board[y][x] = board[y][nx];
             }

@@ -9,6 +9,8 @@
 int cell_at(int x, int y);
 void set_cell_at(int x, int y, int value);
 int movement_at(int x, int y);
+int get_score(void);
+void reset_score(void);
 void save_back_board(void);
 void clear_board(void);
 bool swipe_board_right(void);
