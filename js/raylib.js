@@ -45,6 +45,9 @@ class RaylibJs {
         this.currentMouseWheelMoveState = 0;
         this.prevMousePosition = {x: 0, y: 0};
         this.currentMousePosition = {x: 0, y: 0};
+        this.currentGestureState = new Set();
+        this.touchStartClient = {x: 0, y: 0};
+        this.touchEndClient = {x: 0, y: 0};
         this.images = [];
         this.quit = false;
     }
@@ -96,12 +99,60 @@ class RaylibJs {
             this.ctx.canvas.width  = window.innerWidth;
             this.ctx.canvas.height = window.innerHeight;
         };
+        const touchStart = (e) => {
+            console.log(e);
+            if ((!window.navigator.msPointerEnabled && e.touches.length > 1) ||
+                e.targetTouches.length > 1) {
+                return; // Ignore if touching with more than 1 finger
+            }
+
+            if (window.navigator.msPointerEnabled) {
+                this.touchStartClient = {x: e.pageX, y: e.pageY};
+            } else {
+                this.touchStartClient = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+            }
+            e.preventDefault();
+        };
+        const touchMove = (e) => {
+            e.preventDefault();
+        };
+        const touchEnd = (e) => {
+            console.log(e);
+            if ((!window.navigator.msPointerEnabled && e.touches.length > 0) ||
+                e.targetTouches.length > 0) {
+                return; // Ignore if still touching with one or more fingers
+            }
+            var touchEndClientX, touchEndClientY;
+
+            if (window.navigator.msPointerEnabled) {
+                this.touchEndClient = {x: e.pageX, y: e.pageY};
+            } else {
+                this.touchEndClient = {x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY};
+            }
+
+            var dx = this.touchEndClient.x - this.touchStartClient.x;
+            var absDx = Math.abs(dx);
+
+            var dy = this.touchEndClient.y - this.touchStartClient.y;
+            var absDy = Math.abs(dy);
+
+            if (Math.max(absDx, absDy) > 10) {
+                // (right : left) : (down : up)
+                var gesture = absDx > absDy ? (dx > 0 ? "GESTURE_SWIPE_RIGHT" : "GESTURE_SWIPE_LEFT") : (dy > 0 ? "GESTURE_SWIPE_DOWN" : "GESTURE_SWIPE_UP"); 
+                this.currentGestureState.add(glfwGestureMapping[gesture]);
+            } else {
+                this.currentGestureState.add(glfwGestureMapping["GESTURE_TAP"]);
+            }
+        };
         window.addEventListener("keydown", keyDown);
         window.addEventListener("keyup", keyUp);
         window.addEventListener("wheel", wheelMove);
         window.addEventListener("mousemove", mouseMove);
         window.addEventListener("mousedown", mouseDown);
         window.addEventListener("mouseup", mouseUp);
+        this.ctx.canvas.addEventListener("touchstart", touchStart);
+        this.ctx.canvas.addEventListener("touchend", touchEnd);
+        this.ctx.canvas.addEventListener("touchmove", touchMove);
         this.ctx.canvas.addEventListener("fullscreenchange", fullScreen);
 
 
@@ -124,6 +175,12 @@ class RaylibJs {
         });
     }
     
+
+    //RLAPI void SetGesturesEnabled(unsigned int flags);      // Enable a set of gestures using flags
+    SetGesturesEnabled() {
+        // Do nothing for now
+    }
+
     GetMouseDelta(result_ptr) {
         const bcrect = this.ctx.canvas.getBoundingClientRect();
         const cur_x = this.currentMousePosition.x - bcrect.left;
@@ -211,6 +268,7 @@ class RaylibJs {
         this.prevPressedKeyState.clear();
         this.prevPressedKeyState = new Set(this.currentPressedKeyState);
         this.currentMouseWheelMoveState = 0.0;
+        this.currentGestureState.clear();
     }
     
     
@@ -382,8 +440,8 @@ class RaylibJs {
       return this.currentMouseWheelMoveState;
     }
 
-    IsGestureDetected() {
-        return false;
+    IsGestureDetected(gesture) {
+        return this.currentGestureState.has(gesture);
     }
 
     TextFormat(... args){ 
@@ -636,6 +694,21 @@ const glfwMouseButtonMapping = {
     0: 0, // MOUSE_BUTTON_LEFT
     2: 1, // MOUSE_BUTTON_RIGHT
     1: 2, // MOUSE_BUTTON_MIDDLE
+}
+
+
+const glfwGestureMapping = {
+    "GESTURE_NONE":        0,        // No gesture
+    "GESTURE_TAP":         1,        // Tap gesture
+    "GESTURE_DOUBLETAP":   2,        // Double tap gesture
+    "GESTURE_HOLD":        4,        // Hold gesture
+    "GESTURE_DRAG":        8,        // Drag gesture
+    "GESTURE_SWIPE_RIGHT": 16,       // Swipe right gesture
+    "GESTURE_SWIPE_LEFT":  32,       // Swipe left gesture
+    "GESTURE_SWIPE_UP":    64,       // Swipe up gesture
+    "GESTURE_SWIPE_DOWN":  128,      // Swipe down gesture
+    "GESTURE_PINCH_IN":    256,      // Pinch in gesture
+    "GESTURE_PINCH_OUT":   512       // Pinch out gesture
 }
 
 const glfwKeyMapping = {

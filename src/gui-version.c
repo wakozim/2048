@@ -256,19 +256,19 @@ void restart_game(void)
 
 void capture_input(void)
 {
-    if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) {
+    if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT) || IsGestureDetected(GESTURE_SWIPE_RIGHT)) {
         queue_move(MOVE_RIGHT);
     }
 
-    if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
+    if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN) || IsGestureDetected(GESTURE_SWIPE_DOWN)) {
         queue_move(MOVE_DOWN);
     }
 
-    if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) {
+    if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT) || IsGestureDetected(GESTURE_SWIPE_LEFT)) {
         queue_move(MOVE_LEFT);
     }
 
-    if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
+    if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP) || IsGestureDetected(GESTURE_SWIPE_UP)) {
         queue_move(MOVE_UP);
     }
 
@@ -399,6 +399,8 @@ int main(void)
     SetTraceLogLevel(LOG_WARNING);
     SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_HIGHDPI);
 #endif
+    
+    SetGesturesEnabled(GESTURE_SWIPE_RIGHT | GESTURE_SWIPE_DOWN | GESTURE_SWIPE_LEFT | GESTURE_SWIPE_UP);
 
     InitWindow(FIELD_WIDTH + FIELD_GAP*2, FIELD_HEIGHT + FIELD_GAP*2 + SCORE_HEIGHT, "2048");
     SetTargetFPS(60);
