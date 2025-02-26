@@ -27,6 +27,7 @@
 #define BUTTON_GAP 25
 #define ARROW_THICK 5
 #define ARROW_PAD 10
+#define SHADOW_OFFSET 7
 
 
 #ifdef PLATFORM_WEB
@@ -104,6 +105,21 @@ void _draw_arrow(int x, int y, float angle, float angle2, Color arrow_color)
 }
 
 
+void draw_shadow_rec(Rectangle src, Color color)
+{
+    DrawRectangle(src.x + SHADOW_OFFSET, src.y + SHADOW_OFFSET, src.width, src.height, ColorBrightness(color, -.5f));
+}
+
+
+void draw_shadow(int x, int y, int width, int height, Color color)
+{
+    Rectangle src = {
+        x, y, width, height
+    };
+    draw_shadow_rec(src, color);
+}
+
+
 void draw_cell_value(int cell_value, int x, int y)
 {
     static char text_buffer[4096] = {0};
@@ -171,6 +187,7 @@ void draw_board(void)
     int sy = GetScreenHeight()/2 - GAME_HEIGHT/2 + SCORE_HEIGHT + FIELD_GAP + FIELD_MARGIN;
 
     Rectangle board_rec = {sx - FIELD_MARGIN, sy - FIELD_MARGIN,  FIELD_WIDTH, FIELD_HEIGHT};
+    draw_shadow_rec(board_rec, BOARD_COLOR);
     DrawRectangleRec(board_rec, BOARD_COLOR);
 
     for (int cy = 0; cy < ROWS; cy++) {
@@ -218,6 +235,7 @@ void draw_score(void)
     Vector2 pos = {.x = sx + score_width/2 - text_size.x/2, .y = sy};
 
 
+    draw_shadow(sx, sy, score_width, SCORE_HEIGHT, BOARD_COLOR);
     DrawRectangle(sx, sy, score_width, SCORE_HEIGHT, BOARD_COLOR);
     DrawTextEx(score_label_font, "Score", pos, SCORE_LABEL_TEXT_SIZE, 1, TEXT_COLOR);
     DrawTextEx(default_font, text_buffer, value_pos, SCORE_VALUE_TEXT_SIZE, 1, TEXT_COLOR);
@@ -291,6 +309,7 @@ void draw_cancel_move_button(void)
     Rectangle button_rec = {x, y, BUTTON_SIZE, BUTTON_SIZE};
     bool hoverover = CheckCollisionPointRec(GetMousePosition(), button_rec);
     Color button_color = hoverover ? ARROW_COLOR : BOARD_COLOR;
+    draw_shadow_rec(button_rec, BOARD_COLOR);
     DrawRectangleRec(button_rec, button_color);
 
     Color arrow_color = hoverover ? BOARD_COLOR : ARROW_COLOR;
@@ -315,6 +334,7 @@ void draw_restart_button(void)
     Rectangle button_rec = {x, y, BUTTON_SIZE, BUTTON_SIZE};
     bool hoverover = CheckCollisionPointRec(GetMousePosition(), button_rec);
     Color button_color = hoverover ? ARROW_COLOR : BOARD_COLOR;
+    draw_shadow_rec(button_rec, BOARD_COLOR);
     DrawRectangleRec(button_rec, button_color);
 
     Color arrow_color = hoverover ? BOARD_COLOR : ARROW_COLOR;
