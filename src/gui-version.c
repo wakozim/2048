@@ -263,11 +263,13 @@ bool dequeue_move(Move *move)
 
 void restart_game(void)
 {
-    reset_score();
     clear_board();
     add_random_cell();
     save_prev_board();
     save_back_board();
+    Move move;
+    while (dequeue_move(&move) == true);
+    reset_score();
     game_state = GAME_PLAY;
 }
 

@@ -21,6 +21,7 @@ int get_score(void)
 
 void reset_score(void)
 {
+    prev_score = 0;
     score = 0;
 }
 
